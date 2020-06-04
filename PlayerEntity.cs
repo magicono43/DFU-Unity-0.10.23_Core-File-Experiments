@@ -1237,6 +1237,7 @@ namespace DaggerfallWorkshop.Game.Entity
                         // These do not change costs, just including here for completeness
                         break;
                     case 0:     // Medical
+                        TallyMedical(skillId);
                         break;
                     case 1:
                     case 2:     // Human Specific Languages
@@ -1293,6 +1294,12 @@ namespace DaggerfallWorkshop.Game.Entity
 
                 Debug.Log(error);
             }
+        }
+
+        private void TallyMedical(int skillId) // For now, just make a higher training rate than currently is. Will possibly make it train faster based on how much damage is healed each hour or something.
+        {
+
+            return;
         }
 
         #endregion
@@ -1405,6 +1412,10 @@ namespace DaggerfallWorkshop.Game.Entity
                 int usesNeededForAdvancement = FormulaHelper.CalculateSkillUsesForAdvancement(skills.GetPermanentSkillValue(i), skillAdvancementMultiplier, careerAdvancementMultiplier, level);
                 int reflexesMod = 0x10000 - (((int)reflexes - 2) << 13);
                 int calculatedSkillUses = (skillUses[i] * reflexesMod) >> 16;
+
+                Debug.LogFormat("The Skill, {0}", skills);
+                Debug.LogFormat("Requires, {0} uses to advance.", usesNeededForAdvancement);
+                Debug.LogFormat("The current uses for it is, {0}.", calculatedSkillUses);
 
                 if (calculatedSkillUses >= usesNeededForAdvancement)
                 {
