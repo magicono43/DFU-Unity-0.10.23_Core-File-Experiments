@@ -1211,6 +1211,8 @@ namespace DaggerfallWorkshop.Game.Entity
                 return base.SetMagicka(amount, restoreMode);
         }
 
+        #region Modded Section
+
         /// <summary>
         /// Tally skill usage.
         /// </summary>
@@ -1220,6 +1222,60 @@ namespace DaggerfallWorkshop.Game.Entity
 
             try
             {
+                switch (skillId)
+                {
+                    default:
+                    case 18:
+                    case 21:
+                    case 28:
+                    case 29:
+                    case 30:    // Weapon and other quick leveling skills like running
+                    case 31:
+                    case 32:
+                    case 33:
+                    case 34:
+                        // These do not change costs, just including here for completeness
+                        break;
+                    case 0:     // Medical
+                        break;
+                    case 1:
+                    case 2:     // Human Specific Languages
+                        break;
+                    case 3:     // Jumping
+                        break;
+                    case 4:
+                    case 5:
+                    case 6:
+                    case 7:
+                    case 8:     // Non-Human Languages
+                    case 9:
+                    case 10:
+                    case 11:
+                    case 12:
+                        break;
+                    case 13:    // Lockpicking
+                        break;
+                    case 14:    // Mercantile
+                        break;
+                    case 15:    // Pickpocket
+                        break;
+                    case 16:    // Stealth
+                        break;
+                    case 17:    // Swimming
+                        break;
+                    case 19:    // Backstabbing
+                        break;
+                    case 20:    // Dodging
+                        break;
+                    case 22:
+                    case 23:
+                    case 24:    // Magic Schools
+                    case 25:
+                    case 26:
+                    case 27:
+                        break;
+                }
+
                 skillUses[skillId] += amount;
                 if (skillUses[skillId] > 20000)
                     skillUses[skillId] = 20000;
@@ -1238,6 +1294,8 @@ namespace DaggerfallWorkshop.Game.Entity
                 Debug.Log(error);
             }
         }
+
+        #endregion
 
         /// <summary>
         /// Tally thefts/break-ins and murders for starting Thieves Guild and Dark Brotherhood quests
