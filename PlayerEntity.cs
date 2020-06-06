@@ -1237,7 +1237,7 @@ namespace DaggerfallWorkshop.Game.Entity
                         // These do not change costs, just including here for completeness
                         break;
                     case 0:     // Medical
-                        TallyMedical(skillId);
+                        amount = TallyMedical(skillId, amount);
                         break;
                     case 1:
                     case 2:     // Human Specific Languages
@@ -1277,7 +1277,9 @@ namespace DaggerfallWorkshop.Game.Entity
                         break;
                 }
 
-                skillUses[skillId] += amount;
+                Debug.LogFormat("The Skill enum, {0} just increased by {1}", skillId, amount);
+
+                skillUses[skillId] += amount; // This is the important part, rest is just to keep within some range.
                 if (skillUses[skillId] > 20000)
                     skillUses[skillId] = 20000;
                 else if (skillUses[skillId] < 0)
@@ -1296,10 +1298,16 @@ namespace DaggerfallWorkshop.Game.Entity
             }
         }
 
-        private void TallyMedical(int skillId) // For now, just make a higher training rate than currently is. Will possibly make it train faster based on how much damage is healed each hour or something.
+        private short TallyMedical(int skillId, short amount) // For now, just make a higher training rate than currently is. Will possibly make it train faster based on how much damage is healed each hour or something.
         {
+            PlayerEntity player = GameManager.Instance.PlayerEntity;
 
-            return;
+            if (!(player.CurrentHealth == player.MaxHealth)) // If player health is NOT full.
+            {
+                int healthDifference = (int)Mathf.Floor(((player.MaxHealth - player.CurrentHealth) * 100) / player.MaxHealth);
+                return (short)Mathf.Max((int)Mathf.Round(healthDifference / 15), 2); // Will work for now, only problem is that characters that stay a lower percentage of HP before getting to max will gain more medical skill during a rest, could be fixed by factoring in HealthRecoveryRate, fine for now.
+            }
+            return 1;
         }
 
         #endregion
@@ -1413,8 +1421,8 @@ namespace DaggerfallWorkshop.Game.Entity
                 int reflexesMod = 0x10000 - (((int)reflexes - 2) << 13);
                 int calculatedSkillUses = (skillUses[i] * reflexesMod) >> 16;
 
-                Debug.LogFormat("The Skill, {0}", skills);
-                Debug.LogFormat("Requires, {0} uses to advance.", usesNeededForAdvancement);
+                Debug.LogFormat("The Skill enum, {0}", i);
+                Debug.LogFormat("Requires, {0} uses to advance.", usesNeededForAdvancement); // Mess with values and how these generally work, good research progress thus far.
                 Debug.LogFormat("The current uses for it is, {0}.", calculatedSkillUses);
 
                 if (calculatedSkillUses >= usesNeededForAdvancement)
