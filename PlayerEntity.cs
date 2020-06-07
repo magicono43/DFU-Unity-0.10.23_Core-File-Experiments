@@ -1242,7 +1242,7 @@ namespace DaggerfallWorkshop.Game.Entity
                     case 1:
                     case 2:     // Human Specific Languages
                         break;
-                    case 3:     // Jumping
+                    case 3:     // Jumping // Skip changing jumping for now, as i'll need to make an event handler for "OnPlayerFallDamage" or something.
                         break;
                     case 4:
                     case 5:
@@ -1253,8 +1253,10 @@ namespace DaggerfallWorkshop.Game.Entity
                     case 10:
                     case 11:
                     case 12:
+                        amount = TallyMonsterLanguage(skillId, amount);
                         break;
                     case 13:    // Lockpicking
+                        amount = TallyLockpicking(skillId, amount);
                         break;
                     case 14:    // Mercantile
                         break;
@@ -1307,6 +1309,21 @@ namespace DaggerfallWorkshop.Game.Entity
                 int healthDifference = (int)Mathf.Floor(((player.MaxHealth - player.CurrentHealth) * 100) / player.MaxHealth);
                 return (short)Mathf.Max((int)Mathf.Round(healthDifference / 15), 2); // Will work for now, only problem is that characters that stay a lower percentage of HP before getting to max will gain more medical skill during a rest, could be fixed by factoring in HealthRecoveryRate, fine for now.
             }
+            return 1;
+        }
+
+        private short TallyMonsterLanguage(int skillId, short amount) // Very basic increase of xp gained for monster languages.
+        {
+            if (amount == 1)
+                return 3;
+            else
+                return 6;
+        }
+
+        private short TallyLockpicking(int skillId, short amount)
+        {
+
+
             return 1;
         }
 
