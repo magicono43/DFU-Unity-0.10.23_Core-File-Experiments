@@ -1259,8 +1259,10 @@ namespace DaggerfallWorkshop.Game.Entity
                         amount = TallyLockpicking(skillId, amount);
                         break;
                     case 14:    // Mercantile
+                        amount = TallyMercantile(skillId, amount);
                         break;
                     case 15:    // Pickpocket
+                        amount = TallyPickpocketing(skillId, amount);
                         break;
                     case 16:    // Stealth
                         break;
@@ -1317,14 +1319,24 @@ namespace DaggerfallWorkshop.Game.Entity
             if (amount == 1)
                 return 3;
             else
-                return 6;
+                return 7;
         }
 
         private short TallyLockpicking(int skillId, short amount)
         {
+            return 4; // Not much way to determine from this class if a lockpicking attempt failed or not, so i'm just going to increase the "xp" value.
+        }
+
+        private short TallyMercantile(int skillId, short amount)
+        {
 
 
             return 1;
+        }
+
+        private short TallyPickpocketing(int skillId, short amount)
+        {
+            return 3; // Similar to lockpicking, this one has more way to skill it up so I made the xp amount slightly lower, this needs some work though.
         }
 
         #endregion
