@@ -1281,7 +1281,7 @@ namespace DaggerfallWorkshop.Game.Entity
                     case 25:
                     case 26:
                     case 27:
-                        amount = TallyMagicSchools(skillId, amount);
+                        amount = TallyMagicSchools(skillId, amount, contextValueOne); // Work on getting the magic skill part of this skill leveling improvement done. Read the calling method, as it may give skill xp to all schools of magic used in a spell, so I may have to loop through these and divide the amount accordingly across them, also obviously make this skill improvement amount based on likely percentage of spell points used or something like that. Oh yeah, also make the "Primary Attributes" do something, likely reduce the required skill points needed for a skill to level, possibly even more as well.
                         break;
                 }
 
@@ -1363,8 +1363,10 @@ namespace DaggerfallWorkshop.Game.Entity
             return 2;
         }
 
-        private short TallyMagicSchools(int skillId, short amount)
+        private short TallyMagicSchools(int skillId, short amount, int effectCastingCost)
         {
+
+
             return 1;
         }
 

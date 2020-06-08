@@ -1925,13 +1925,19 @@ namespace DaggerfallWorkshop.Game.MagicAndEffects
             if (readySpell == null || readySpell.Settings.Effects == null)
                 return;
 
+            TargetTypes targetTypes = readySpell.Settings.TargetType;
+
             // Loop through effects in spell bundle and tally related magic skill
             // Normally spells will have no more than 3 effects
             for (int i = 0; i < readySpell.Settings.Effects.Length; i++)
             {
                 IEntityEffect effect = GameManager.Instance.EntityEffectBroker.GetEffectTemplate(readySpell.Settings.Effects[i].Key);
                 if (effect != null)
-                    GameManager.Instance.PlayerEntity.TallySkill((DFCareer.Skills)effect.Properties.MagicSkill, 1);
+                {
+                    int effectCastingCost = GetEffectCastingCost(effect, targetTypes, entityBehaviour.Entity);
+                    Debug.LogFormat("Effect Cost #{0} = {1} mana", i, effectCastingCost);
+                    GameManager.Instance.PlayerEntity.TallySkill((DFCareer.Skills)effect.Properties.MagicSkill, 1, effectCastingCost);
+                }
             }
         }
 
