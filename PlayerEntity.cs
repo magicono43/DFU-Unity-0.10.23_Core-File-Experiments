@@ -1216,7 +1216,7 @@ namespace DaggerfallWorkshop.Game.Entity
         /// <summary>
         /// Tally skill usage.
         /// </summary>
-        public override void TallySkill(DFCareer.Skills skill, short amount)
+        public override void TallySkill(DFCareer.Skills skill, short amount, int contextValueOne = 0, int contextValueTwo = 0)
         {
             int skillId = (int)skill;
 
@@ -1259,7 +1259,7 @@ namespace DaggerfallWorkshop.Game.Entity
                         amount = TallyLockpicking(skillId, amount);
                         break;
                     case 14:    // Mercantile
-                        amount = TallyMercantile(skillId, amount);
+                        amount = TallyMercantile(skillId, amount, contextValueOne, contextValueTwo);
                         break;
                     case 15:    // Pickpocket
                         amount = TallyPickpocketing(skillId, amount);
@@ -1327,10 +1327,15 @@ namespace DaggerfallWorkshop.Game.Entity
             return 4; // Not much way to determine from this class if a lockpicking attempt failed or not, so i'm just going to increase the "xp" value.
         }
 
-        private short TallyMercantile(int skillId, short amount)
+        private short TallyMercantile(int skillId, short amount, int tradePrice, int basketItems)
         {
+            if (basketItems > 1 || tradePrice >= 1000)
+            {
+                int basketXp = (int)Mathf.Floor(basketItems / 2) + 1;
+                int priceXp = (int)Mathf.Floor(tradePrice / 1000) + 1;
 
-
+                return (short)Mathf.Max(basketXp, priceXp, 2);
+            }
             return 1;
         }
 

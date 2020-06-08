@@ -1042,7 +1042,7 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
                     DaggerfallUI.Instance.PlayOneShot(SoundClips.ParchmentScratching);
                 else
                     DaggerfallUI.Instance.PlayOneShot(SoundClips.GoldPieces);
-                PlayerEntity.TallySkill(DFCareer.Skills.Mercantile, 1);
+                PlayerEntity.TallySkill(DFCareer.Skills.Mercantile, 1, tradePrice, basketItems.Count);
                 Refresh();
             }
             CloseWindow();
