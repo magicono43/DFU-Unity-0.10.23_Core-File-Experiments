@@ -1264,13 +1264,16 @@ namespace DaggerfallWorkshop.Game.Entity
                     case 15:    // Pickpocket
                         amount = TallyPickpocketing(skillId, amount);
                         break;
-                    case 16:    // Stealth
+                    case 16:    // Stealth // Leaving alone for now, since i'm not sure what to do with it, or if this needs changing really.
                         break;
-                    case 17:    // Swimming
+                    case 17:    // Swimming // Going to double this for now, as you touch water so infrequently that I think it's fair enough.
+                        amount = TallySwimming(skillId, amount);
                         break;
-                    case 19:    // Backstabbing
+                    case 19:    // Backstabbing // Going to make this way higher, as this also likely happens not that often due to many factors.
+                        amount = TallyBackstabbing(skillId, amount);
                         break;
-                    case 20:    // Dodging
+                    case 20:    // Dodging // Once again, going to make this slightly higher, for now at least.
+                        amount = TallyDodging(skillId, amount);
                         break;
                     case 22:
                     case 23:
@@ -1278,6 +1281,7 @@ namespace DaggerfallWorkshop.Game.Entity
                     case 25:
                     case 26:
                     case 27:
+                        amount = TallyMagicSchools(skillId, amount);
                         break;
                 }
 
@@ -1342,6 +1346,26 @@ namespace DaggerfallWorkshop.Game.Entity
         private short TallyPickpocketing(int skillId, short amount)
         {
             return 3; // Similar to lockpicking, this one has more way to skill it up so I made the xp amount slightly lower, this needs some work though.
+        }
+
+        private short TallySwimming(int skillId, short amount)
+        {
+            return 2;
+        }
+
+        private short TallyBackstabbing(int skillId, short amount)
+        {
+            return 5;
+        }
+
+        private short TallyDodging(int skillId, short amount)
+        {
+            return 2;
+        }
+
+        private short TallyMagicSchools(int skillId, short amount)
+        {
+            return 1;
         }
 
         #endregion
