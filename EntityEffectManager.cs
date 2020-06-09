@@ -1925,7 +1925,7 @@ namespace DaggerfallWorkshop.Game.MagicAndEffects
             if (readySpell == null || readySpell.Settings.Effects == null)
                 return;
 
-            int goldCost, spellPointCost;
+            int totalGoldCostUnused, readySpellCastingCost;
             TargetTypes targetTypes = readySpell.Settings.TargetType;
 
             // Loop through effects in spell bundle and tally related magic skill
@@ -1935,13 +1935,10 @@ namespace DaggerfallWorkshop.Game.MagicAndEffects
                 IEntityEffect effect = GameManager.Instance.EntityEffectBroker.GetEffectTemplate(readySpell.Settings.Effects[i].Key);
                 if (effect != null)
                 {
-                    FormulaHelper.CalculateEffectCosts(effect, effect.Settings, out goldCost, out spellPointCost);
-                    spellPointCost = FormulaHelper.ApplyTargetCostMultiplier(spellPointCost, targetTypes);
-                    if (spellPointCost < 5)
-                        spellPointCost = 5;
+                    FormulaHelper.CalculateTotalEffectCosts(readySpell.Settings.Effects, readySpell.Settings.TargetType, out totalGoldCostUnused, out readySpellCastingCost, null, readySpell.Settings.MinimumCastingCost);
 
-                    Debug.LogFormat("Effect Cost #{0} = {1} mana", i, spellPointCost);
-                    GameManager.Instance.PlayerEntity.TallySkill((DFCareer.Skills)effect.Properties.MagicSkill, 1, spellPointCost);
+                    Debug.LogFormat("Effect Cost #{0} = {1} mana", i, readySpellCastingCost);
+                    GameManager.Instance.PlayerEntity.TallySkill((DFCareer.Skills)effect.Properties.MagicSkill, 1, readySpellCastingCost);
                 }
             }
         }
