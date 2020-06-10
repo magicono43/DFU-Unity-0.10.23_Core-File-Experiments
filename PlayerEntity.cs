@@ -1281,7 +1281,7 @@ namespace DaggerfallWorkshop.Game.Entity
                     case 25:
                     case 26:
                     case 27:
-                        amount = TallyMagicSchools(skillId, amount, contextValueOne); // Work on getting the magic skill part of this skill leveling improvement done. Read the calling method, as it may give skill xp to all schools of magic used in a spell, so I may have to loop through these and divide the amount accordingly across them, also obviously make this skill improvement amount based on likely percentage of spell points used or something like that. Oh yeah, also make the "Primary Attributes" do something, likely reduce the required skill points needed for a skill to level, possibly even more as well.
+                        amount = TallyMagicSchools(skillId, amount, contextValueOne, contextValueTwo);
                         break;
                 }
 
@@ -1326,7 +1326,7 @@ namespace DaggerfallWorkshop.Game.Entity
                 return 7;
         }
 
-        private short TallyLockpicking(int skillId, short amount)
+        private short TallyLockpicking(int skillId, short amount) // Had an idea, if I could pass the difficulty of the lock that was just picked, that could be used to determine how much xp is given, if you succeed at least.
         {
             return 4; // Not much way to determine from this class if a lockpicking attempt failed or not, so i'm just going to increase the "xp" value.
         }
@@ -1363,12 +1363,35 @@ namespace DaggerfallWorkshop.Game.Entity
             return 2;
         }
 
-        private short TallyMagicSchools(int skillId, short amount, int effectCastingCost)
+        private short TallyMagicSchools(int skillId, short amount, int effectCastingCost, int effectCount)
         {
+            PlayerEntity player = GameManager.Instance.PlayerEntity;
+            int tallyAmount = 1;
 
+            if (effectCastingCost > 6 && effectCastingCost <= 300)
+            {
+                tallyAmount = (int)Mathf.Round(effectCastingCost / 5);
+                tallyAmount = (int)Mathf.Max(tallyAmount, 2);
+            }
+            else if (effectCastingCost > 300)
+            {
+                tallyAmount = (int)Mathf.Round(((effectCastingCost - 300) / 3) + 60);
+                tallyAmount = (int)Mathf.Max(tallyAmount, 2);
+            }
 
-            return 1;
-        }
+            if (tallyAmount <= 1)
+            {
+                float tallyRoller = (UnityEngine.Random.Range((tallyAmount / effectCount), 1f));
+                if (tallyRoller >= 0.8f)
+                    return 1;
+                else
+                    return 0;
+            }
+            else
+            {
+                return (short)Mathf.Max((int)Mathf.Floor(tallyAmount / effectCount), 1);
+            }
+        } // Work on the "Primary Attributes" thing after this tally part is done, after that probably work on fixing the guild trainer system. For the Primary attributes thing, also make it so luck has an effect on all skills leveling requirements as well, a small factor, but still.
 
         #endregion
 
