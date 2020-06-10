@@ -1391,7 +1391,7 @@ namespace DaggerfallWorkshop.Game.Entity
             {
                 return (short)Mathf.Max((int)Mathf.Round(tallyAmount / effectCount), 1f);
             }
-        } // Work on the "Primary Attributes" thing after this tally part is done, after that probably work on fixing the guild trainer system. For the Primary attributes thing, also make it so luck has an effect on all skills leveling requirements as well, a small factor, but still.
+        } // Work on fixing the guild trainer system. After the trainer part, I may work on getting the "usesRequiredForAdvancement" to show up on the skill menu for basic tracking. If not that, consider doing the back-end proper implimentation part, which I am NOT looking forward to.
 
         #endregion
 
@@ -1483,6 +1483,8 @@ namespace DaggerfallWorkshop.Game.Entity
             return 0;
         }
 
+        #region Modded Section Part 2
+
         /// <summary>
         /// Raise skills if conditions are met.
         /// </summary>
@@ -1498,14 +1500,15 @@ namespace DaggerfallWorkshop.Game.Entity
 
             for (short i = 0; i < skillUses.Length; i++)
             {
+                Debug.LogFormat("The Skill enum, {0}", i);
                 int skillAdvancementMultiplier = DaggerfallSkills.GetAdvancementMultiplier((DFCareer.Skills)i);
                 float careerAdvancementMultiplier = Career.AdvancementMultiplier;
                 int usesNeededForAdvancement = FormulaHelper.CalculateSkillUsesForAdvancement(skills.GetPermanentSkillValue(i), skillAdvancementMultiplier, careerAdvancementMultiplier, level);
+                Debug.LogFormat("Requires, {0} uses to advance.", usesNeededForAdvancement);
+                usesNeededForAdvancement = PrimaryAttributeModifier(i, usesNeededForAdvancement);
+                Debug.LogFormat("Requires, {0} uses to advance, AFTER Primary Attribute Modifiers.", usesNeededForAdvancement);
                 int reflexesMod = 0x10000 - (((int)reflexes - 2) << 13);
                 int calculatedSkillUses = (skillUses[i] * reflexesMod) >> 16;
-
-                Debug.LogFormat("The Skill enum, {0}", i);
-                Debug.LogFormat("Requires, {0} uses to advance.", usesNeededForAdvancement); // Mess with values and how these generally work, good research progress thus far.
                 Debug.LogFormat("The current uses for it is, {0}.", calculatedSkillUses);
 
                 if (calculatedSkillUses >= usesNeededForAdvancement)
@@ -1544,6 +1547,83 @@ namespace DaggerfallWorkshop.Game.Entity
             if (CheckForLevelUp())
                 DaggerfallUI.PostMessage(DaggerfallUIMessages.dfuiOpenCharacterSheetWindow);
         }
+
+        private int PrimaryAttributeModifier(int skillId, int usesNeededForAdvancement)
+        {
+            PlayerEntity player = GameManager.Instance.PlayerEntity;
+            int playerPrimAttrib = 0;
+            float primAttrSkillMod = 0;
+            float luckSkillMod = 0;
+            int playerLuck = 0;
+
+            switch (skillId)
+            {
+                default:
+                    return usesNeededForAdvancement;
+                case 33:
+                case 19:
+                case 34:
+                case 30:
+                case 29:
+                case 15:
+                case 28:
+                case 16:
+                    playerPrimAttrib = (player.Stats.PermanentAgility - 50) * -1; // agility
+                    primAttrSkillMod = (playerPrimAttrib * .008f) + 1;
+                    break;
+                case 17:
+                    playerPrimAttrib = player.Stats.PermanentEndurance - 50; // endurance
+                    primAttrSkillMod = (playerPrimAttrib * .008f) + 1;
+                    break;
+                case 11:
+                case 9:
+                case 7:
+                case 6:
+                case 5:
+                case 12:
+                case 13:
+                case 0:
+                case 8:
+                case 4:
+                case 10:
+                    playerPrimAttrib = (player.Stats.PermanentIntelligence - 50) * -1; // intelligence
+                    primAttrSkillMod = (playerPrimAttrib * .008f) + 1;
+                    break;
+                case 1:
+                case 14:
+                case 2:
+                    playerPrimAttrib = (player.Stats.PermanentPersonality - 50) * -1; // personality
+                    primAttrSkillMod = (playerPrimAttrib * .008f) + 1;
+                    break;
+                case 20:
+                case 21:
+                    playerPrimAttrib = (player.Stats.PermanentSpeed - 50) * -1; // speed
+                    primAttrSkillMod = (playerPrimAttrib * .008f) + 1;
+                    break;
+                case 31:
+                case 32:
+                case 18:
+                case 3:
+                    playerPrimAttrib = (player.Stats.PermanentStrength - 50) * -1; // strength
+                    primAttrSkillMod = (playerPrimAttrib * .008f) + 1;
+                    break;
+                case 25:
+                case 22:
+                case 24:
+                case 27:
+                case 23:
+                case 26:
+                    playerPrimAttrib = (player.Stats.PermanentWillpower - 50) * -1; // willpower
+                    primAttrSkillMod = (playerPrimAttrib * .008f) + 1;
+                    break;
+            }
+            playerLuck = (player.Stats.PermanentLuck - 50) * -1; // luck
+            luckSkillMod = (playerLuck * .004f);
+            float totalSkillMod = primAttrSkillMod + luckSkillMod;
+            return Mathf.Max((int)Mathf.Round(usesNeededForAdvancement * totalSkillMod), 1);
+        }
+
+        #endregion
 
         /// <summary>
         /// Gets whether the player has already become master of a skill.
