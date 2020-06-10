@@ -1370,18 +1370,18 @@ namespace DaggerfallWorkshop.Game.Entity
 
             if (effectCastingCost > 6 && effectCastingCost <= 300)
             {
-                tallyAmount = (int)Mathf.Round(effectCastingCost / 5);
-                tallyAmount = (int)Mathf.Max(tallyAmount, 2);
+                tallyAmount = (int)Mathf.Round(effectCastingCost / 5f);
+                tallyAmount = Mathf.Max(tallyAmount, 2);
             }
             else if (effectCastingCost > 300)
             {
-                tallyAmount = (int)Mathf.Round(((effectCastingCost - 300) / 3) + 60);
-                tallyAmount = (int)Mathf.Max(tallyAmount, 2);
+                tallyAmount = (int)Mathf.Round(((effectCastingCost - 300f) / 3f) + 60f);
+                tallyAmount = Mathf.Max(tallyAmount, 2);
             }
 
             if (tallyAmount <= 1)
             {
-                float tallyRoller = (UnityEngine.Random.Range((tallyAmount / effectCount), 1f));
+                float tallyRoller = (UnityEngine.Random.Range(tallyAmount / effectCount, 1f));
                 if (tallyRoller >= 0.8f)
                     return 1;
                 else
@@ -1389,7 +1389,7 @@ namespace DaggerfallWorkshop.Game.Entity
             }
             else
             {
-                return (short)Mathf.Max((int)Mathf.Floor(tallyAmount / effectCount), 1);
+                return (short)Mathf.Max((int)Mathf.Round(tallyAmount / effectCount), 1f);
             }
         } // Work on the "Primary Attributes" thing after this tally part is done, after that probably work on fixing the guild trainer system. For the Primary attributes thing, also make it so luck has an effect on all skills leveling requirements as well, a small factor, but still.
 
