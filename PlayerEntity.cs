@@ -1331,7 +1331,7 @@ namespace DaggerfallWorkshop.Game.Entity
             return 4; // Not much way to determine from this class if a lockpicking attempt failed or not, so i'm just going to increase the "xp" value.
         }
 
-        private short TallyMercantile(int skillId, short amount, int tradePrice, int basketItems)
+        private short TallyMercantile(int skillId, short amount, int tradePrice, int basketItems = 1)
         {
             if (basketItems > 1 || tradePrice >= 1000)
             {
@@ -1391,7 +1391,7 @@ namespace DaggerfallWorkshop.Game.Entity
             {
                 return (short)Mathf.Max((int)Mathf.Round(tallyAmount / effectCount), 1f);
             }
-        } // Work on fixing the guild trainer system. After the trainer part, I may work on getting the "usesRequiredForAdvancement" to show up on the skill menu for basic tracking. If not that, consider doing the back-end proper implimentation part, which I am NOT looking forward to.
+        } // After fixing the text-boxes and such, also might revisit the other skills since I now have potentially more parameters to work with in "TallySkill" method. // Now that I have worked out basically all the math for the trainer rework, I still need to change what the text-boxes say and what they display. For one I need to get the cost of the session to display instead of what it currently does, also possibly show the maximum skill value that specific guildhall can train to and such.// Work on fixing the guild trainer system. After the trainer part, I may work on getting the "usesRequiredForAdvancement" to show up on the skill menu for basic tracking. If not that, consider doing the back-end proper implimentation part, which I am NOT looking forward to.
 
         #endregion
 

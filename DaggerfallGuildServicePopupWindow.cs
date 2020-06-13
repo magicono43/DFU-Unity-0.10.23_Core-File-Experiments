@@ -728,13 +728,19 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
             }
         }
 
-        private void TrainingSkill_OnItemPicked(int index, string skillName)
+        #region Modded Section
+
+        private void TrainingSkill_OnItemPicked(int index, string skillName) // Going to have to change another method for correct gold cost display, etc.
         {
             CloseWindow();
             List<DFCareer.Skills> trainingSkills = GetTrainingSkills();
             DFCareer.Skills skillToTrain = trainingSkills[index];
+            int guildhallQuality = 0;
+            guildhallQuality = GameManager.Instance.PlayerEnterExit.BuildingDiscoveryData.quality;
+            PlayerEntity player = GameManager.Instance.PlayerEntity;
+            int trainingMaximum = CalculateTrainingMaximum(guildhallQuality);
 
-            if (playerEntity.Skills.GetPermanentSkillValue(skillToTrain) > guild.GetTrainingMax(skillToTrain))
+            if (playerEntity.Skills.GetPermanentSkillValue(skillToTrain) > trainingMaximum)
             {
                 // Inform player they're too skilled to train
                 TextFile.Token[] tokens = DaggerfallUnity.Instance.TextProvider.GetRandomTokens(TrainingTooSkilledId);
@@ -745,17 +751,212 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
             }
             else
             {   // Train the skill
+                bool reduceHealth = false;
+                bool reduceMagicka = false;
                 DaggerfallDateTime now = DaggerfallUnity.Instance.WorldTime.Now;
                 playerEntity.TimeOfLastSkillTraining = now.ToClassicDaggerfallTime();
                 now.RaiseTime(DaggerfallDateTime.SecondsPerHour * 3);
-                playerEntity.DeductGoldAmount(guild.GetTrainingPrice());
-                playerEntity.DecreaseFatigue(PlayerEntity.DefaultFatigueLoss * 180);
+                int trainingPrice = CalculateTrainingPrice(guildhallQuality, player, skillToTrain);
+                int statReduceAmount = CalculateStatSessionReduction(skillToTrain, out reduceHealth, out reduceMagicka);
+                playerEntity.DeductGoldAmount(trainingPrice);
+                if (reduceHealth)
+                {
+                    int hpDecreased = HealthDecreaseAmount(player);
+                    playerEntity.DecreaseHealth(hpDecreased);
+                }
+                if (reduceMagicka)
+                {
+                    int mpDecreased = MagickaDecreaseAmount(player);
+                    playerEntity.DecreaseMagicka(mpDecreased);
+                }
+                playerEntity.DecreaseFatigue(statReduceAmount * 180);
+                int trainingAmount = CalculateTrainingAmount(guildhallQuality, player, skillToTrain);
                 int skillAdvancementMultiplier = DaggerfallSkills.GetAdvancementMultiplier(skillToTrain);
-                short tallyAmount = (short)(UnityEngine.Random.Range(10, 20 + 1) * skillAdvancementMultiplier);
+                short tallyAmount = (short)(trainingAmount * skillAdvancementMultiplier);
                 playerEntity.TallySkill(skillToTrain, tallyAmount);
                 DaggerfallUI.MessageBox(TrainSkillId);
             }
         }
+
+        private int CalculateTrainingMaximum(int Quality)
+        {
+            if (Quality <= 3)       // 01 - 03
+            {
+                return 35;
+            }
+            else if (Quality <= 7)  // 04 - 07
+            {
+                return 50;
+            }
+            else if (Quality <= 13) // 08 - 13
+            {
+                return 65;
+            }
+            else if (Quality <= 17) // 14 - 17
+            {
+                return 75;
+            }
+            else                    // 18 - 20
+            {
+                return 85;
+            }
+        }
+
+        private int CalculateTrainingPrice(int Quality, PlayerEntity player, DFCareer.Skills skillToTrain)
+        {
+            int skillValue = playerEntity.Skills.GetPermanentSkillValue(skillToTrain); // Will likely want to change the pricing around later.
+            int goldCost = 1;
+
+            if (Quality <= 3)       // 01 - 03
+            {
+                goldCost = (skillValue + Quality) * 15;
+            }
+            else if (Quality <= 7)  // 04 - 07
+            {
+                goldCost = (skillValue + Quality) * 20;
+            }
+            else if (Quality <= 13) // 08 - 13
+            {
+                goldCost = (skillValue + Quality) * 25;
+            }
+            else if (Quality <= 17) // 14 - 17
+            {
+                if (skillValue >= 65)
+                    goldCost = (skillValue + Quality) * 60;
+                else
+                    goldCost = (skillValue + Quality) * 30;
+            }
+            else                    // 18 - 20
+            {
+                if (skillValue >= 65)
+                    goldCost = (skillValue + Quality) * 70;
+                else
+                    goldCost = (skillValue + Quality) * 35;
+            }
+
+            if (!guild.IsMember())
+                goldCost = goldCost * 4;
+            goldCost = FormulaHelper.CalculateTradePrice(goldCost, Quality, false);
+            player.TallySkill(DFCareer.Skills.Mercantile, 1, goldCost);
+
+            return goldCost;
+        }
+
+        private int CalculateTrainingAmount(int Quality, PlayerEntity player, DFCareer.Skills skillToTrain)
+        {
+            int playerLuck = (int)Mathf.Floor((player.Stats.PermanentLuck - 50) / 5f);
+            int skillValue = playerEntity.Skills.GetPermanentSkillValue(skillToTrain);
+            int trainingAmount = 1;
+
+            UnityEngine.Random.Range(10, 20 + 1);
+
+            if (Quality <= 3)       // 01 - 03
+            {
+                trainingAmount = UnityEngine.Random.Range(10 + Quality + playerLuck, 15 + Quality + playerLuck);
+            }
+            else if (Quality <= 7)  // 04 - 07
+            {
+                trainingAmount = UnityEngine.Random.Range(10 + Quality + playerLuck, 15 + Quality + playerLuck);
+            }
+            else if (Quality <= 13) // 08 - 13
+            {
+                trainingAmount = UnityEngine.Random.Range(10 + Quality + playerLuck, 20 + Quality + playerLuck);
+            }
+            else if (Quality <= 17) // 14 - 17
+            {
+                if (skillValue >= 65)
+                    trainingAmount = UnityEngine.Random.Range(20 + Quality + playerLuck, 30 + Quality + playerLuck);
+                else
+                    trainingAmount = UnityEngine.Random.Range(15 + Quality + playerLuck, 20 + Quality + playerLuck);
+            }
+            else                    // 18 - 20
+            {
+                if (skillValue >= 65)
+                    trainingAmount = UnityEngine.Random.Range(30 + Quality + playerLuck, 40 + Quality + playerLuck);
+                else
+                    trainingAmount = UnityEngine.Random.Range(20 + Quality + playerLuck, 25 + Quality + playerLuck);
+            }
+
+            return trainingAmount;
+        }
+
+        private int CalculateStatSessionReduction(DFCareer.Skills skillToTrain, out bool reduceHealth, out bool reduceMagicka)
+        {
+            int skillId = (int)skillToTrain;
+            reduceHealth = false;
+            reduceMagicka = false;
+
+            switch (skillId)
+            {
+                default:
+                    return 11;
+                case 0:
+                case 1:
+                case 2:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                case 8:
+                case 9:
+                case 10:
+                case 11:
+                case 12:
+                case 13:
+                case 14:
+                case 15:
+                case 16:
+                    return 8; // Mostly non-physical academic type activities.
+                case 3:
+                case 17:
+                case 18:
+                case 19:
+                case 21:
+                case 33:
+                case 34:
+                    return 15; // Very physically taxing activities, but not necessarily dangerous.
+                case 20:
+                case 28:
+                case 29:
+                case 30:
+                case 31:
+                case 32:
+                    reduceHealth = true; // Physical and potentially dangerous activities.
+                    return 12;
+                case 22:
+                case 23:
+                case 24:
+                case 25:
+                case 26:
+                case 27:
+                    reduceMagicka = true; // Non-physical magic based activites.
+                    return 9;
+            }
+        }
+
+        private int HealthDecreaseAmount(PlayerEntity player)
+        {
+            float rolledHpPercent = UnityEngine.Random.Range(0.10f, 0.25f);
+            int hpReduceValue = (int)Mathf.Floor(player.MaxHealth * rolledHpPercent);
+
+            if (player.CurrentHealth > hpReduceValue)
+                return hpReduceValue;
+            else
+                return 0;
+        }
+
+        private int MagickaDecreaseAmount(PlayerEntity player)
+        {
+            float rolledMpPercent = UnityEngine.Random.Range(0.05f, 0.20f);
+            int mpReduceValue = Mathf.Max((int)Mathf.Floor(player.MaxMagicka * rolledMpPercent), 5);
+
+            if (player.CurrentMagicka > mpReduceValue)
+                return mpReduceValue;
+            else
+                return 0;
+        }
+
+        #endregion
 
         #endregion
 
