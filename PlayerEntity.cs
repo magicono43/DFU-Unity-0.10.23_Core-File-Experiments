@@ -1222,67 +1222,74 @@ namespace DaggerfallWorkshop.Game.Entity
 
             try
             {
-                switch (skillId)
+                if (amount >= 4)
                 {
-                    default:
-                    case 18:
-                    case 21:
-                    case 28:
-                    case 29:
-                    case 30:    // Weapon and other quick leveling skills like running
-                    case 31:
-                    case 32:
-                    case 33:
-                    case 34:
-                        // These do not change costs, just including here for completeness
-                        break;
-                    case 0:     // Medical
-                        amount = TallyMedical(skillId, amount);
-                        break;
-                    case 1:
-                    case 2:     // Human Specific Languages
-                        break;
-                    case 3:     // Jumping // Skip changing jumping for now, as i'll need to make an event handler for "OnPlayerFallDamage" or something.
-                        break;
-                    case 4:
-                    case 5:
-                    case 6:
-                    case 7:
-                    case 8:     // Non-Human Languages
-                    case 9:
-                    case 10:
-                    case 11:
-                    case 12:
-                        amount = TallyMonsterLanguage(skillId, amount);
-                        break;
-                    case 13:    // Lockpicking
-                        amount = TallyLockpicking(skillId, amount);
-                        break;
-                    case 14:    // Mercantile
-                        amount = TallyMercantile(skillId, amount, contextValueOne, contextValueTwo);
-                        break;
-                    case 15:    // Pickpocket
-                        amount = TallyPickpocketing(skillId, amount);
-                        break;
-                    case 16:    // Stealth // Leaving alone for now, since i'm not sure what to do with it, or if this needs changing really.
-                        break;
-                    case 17:    // Swimming // Going to double this for now, as you touch water so infrequently that I think it's fair enough.
-                        amount = TallySwimming(skillId, amount);
-                        break;
-                    case 19:    // Backstabbing // Going to make this way higher, as this also likely happens not that often due to many factors.
-                        amount = TallyBackstabbing(skillId, amount);
-                        break;
-                    case 20:    // Dodging // Once again, going to make this slightly higher, for now at least.
-                        amount = TallyDodging(skillId, amount);
-                        break;
-                    case 22:
-                    case 23:
-                    case 24:    // Magic Schools
-                    case 25:
-                    case 26:
-                    case 27:
-                        amount = TallyMagicSchools(skillId, amount, contextValueOne, contextValueTwo);
-                        break;
+                    Debug.LogFormat("This is a training session that gave, Skill enum {0}, {1} tallys", skillId, amount);
+                }
+                else
+                {
+                    switch (skillId)
+                    {
+                        default:
+                        case 18:
+                        case 21:
+                        case 28:
+                        case 29:
+                        case 30:    // Weapon and other quick leveling skills like running
+                        case 31:
+                        case 32:
+                        case 33:
+                        case 34:
+                            // These do not change costs, just including here for completeness
+                            break;
+                        case 0:     // Medical
+                            amount = TallyMedical(skillId, amount);
+                            break;
+                        case 1:
+                        case 2:     // Human Specific Languages
+                            break;
+                        case 3:     // Jumping // Skip changing jumping for now, as i'll need to make an event handler for "OnPlayerFallDamage" or something.
+                            break;
+                        case 4:
+                        case 5:
+                        case 6:
+                        case 7:
+                        case 8:     // Non-Human Languages
+                        case 9:
+                        case 10:
+                        case 11:
+                        case 12:
+                            amount = TallyMonsterLanguage(skillId, amount);
+                            break;
+                        case 13:    // Lockpicking
+                            amount = TallyLockpicking(skillId, amount);
+                            break;
+                        case 14:    // Mercantile
+                            amount = TallyMercantile(skillId, amount, contextValueOne, contextValueTwo);
+                            break;
+                        case 15:    // Pickpocket
+                            amount = TallyPickpocketing(skillId, amount);
+                            break;
+                        case 16:    // Stealth // Leaving alone for now, since i'm not sure what to do with it, or if this needs changing really.
+                            break;
+                        case 17:    // Swimming // Going to double this for now, as you touch water so infrequently that I think it's fair enough.
+                            amount = TallySwimming(skillId, amount);
+                            break;
+                        case 19:    // Backstabbing // Going to make this way higher, as this also likely happens not that often due to many factors.
+                            amount = TallyBackstabbing(skillId, amount);
+                            break;
+                        case 20:    // Dodging // Once again, going to make this slightly higher, for now at least.
+                            amount = TallyDodging(skillId, amount);
+                            break;
+                        case 22:
+                        case 23:
+                        case 24:    // Magic Schools
+                        case 25:
+                        case 26:
+                        case 27:
+                            amount = TallyMagicSchools(skillId, amount, contextValueOne, contextValueTwo);
+                            break;
+                    }
                 }
 
                 Debug.LogFormat("The Skill enum, {0} just increased by {1}", skillId, amount);
@@ -1391,7 +1398,7 @@ namespace DaggerfallWorkshop.Game.Entity
             {
                 return (short)Mathf.Max((int)Mathf.Round(tallyAmount / effectCount), 1f);
             }
-        } // After fixing the text-boxes and such, also might revisit the other skills since I now have potentially more parameters to work with in "TallySkill" method. // Now that I have worked out basically all the math for the trainer rework, I still need to change what the text-boxes say and what they display. For one I need to get the cost of the session to display instead of what it currently does, also possibly show the maximum skill value that specific guildhall can train to and such.// Work on fixing the guild trainer system. After the trainer part, I may work on getting the "usesRequiredForAdvancement" to show up on the skill menu for basic tracking. If not that, consider doing the back-end proper implimentation part, which I am NOT looking forward to.
+        } // Will also obviously want to add some debug strings to make sure these functions are working, lol. // Might revisit the other skills since I now have potentially more parameters to work with in "TallySkill" method. // I may work on getting the "usesRequiredForAdvancement" to show up on the skill menu for basic tracking. If not that, consider doing the back-end proper implimentation part, which I am NOT looking forward to.
 
         #endregion
 

@@ -682,12 +682,17 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
             }
         }
 
+        #region Modded Section
+
+        public static int PickedSkillIndex { get; set; }
+        public static string PickedSkillName { get; set; }
+
         void TrainingService()
         {
             CloseWindow();
             // Check enough time has passed since last trained
             DaggerfallDateTime now = DaggerfallUnity.Instance.WorldTime.Now;
-            if ((now.ToClassicDaggerfallTime() - playerEntity.TimeOfLastSkillTraining) < 720)
+            if ((now.ToClassicDaggerfallTime() - playerEntity.TimeOfLastSkillTraining) < 540)
             {
                 TextFile.Token[] tokens = DaggerfallUnity.Instance.TextProvider.GetRandomTokens(TrainingToSoonId);
                 DaggerfallMessageBox messageBox = new DaggerfallMessageBox(uiManager, uiManager.TopWindow);
@@ -696,54 +701,107 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
                 messageBox.Show();
             }
             else
-            {   // Offer training price
-                DaggerfallMessageBox messageBox = new DaggerfallMessageBox(uiManager, uiManager.TopWindow);
-                TextFile.Token[] tokens = DaggerfallUnity.Instance.TextProvider.GetRSCTokens(TrainingOfferId);
-                messageBox.SetTextTokens(tokens, guild);
-                messageBox.AddButton(DaggerfallMessageBox.MessageBoxButtons.Yes);
-                messageBox.AddButton(DaggerfallMessageBox.MessageBoxButtons.No);
-                messageBox.OnButtonClick += ConfirmTraining_OnButtonClick;
-                messageBox.Show();
+            {
+                // Show skill picker loaded with guild training skills
+                DaggerfallListPickerWindow skillPicker = new DaggerfallListPickerWindow(uiManager, this);
+                skillPicker.OnItemPicked += HandleSkillPickEvent;
+
+                foreach (DFCareer.Skills skill in GetTrainingSkills())
+                    skillPicker.ListBox.AddItem(DaggerfallUnity.Instance.TextProvider.GetSkillName(skill));
+
+                uiManager.PushWindow(skillPicker);
             }
+        }
+
+        private void HandleSkillPickEvent(int index, string skillName)
+        {
+            PickedSkillIndex = index;
+            PickedSkillName = skillName;
+            List<DFCareer.Skills> trainingSkills = GetTrainingSkills();
+            DFCareer.Skills skillToTrain = trainingSkills[index];
+            int guildhallQuality = 0;
+            string facTitle = "Stranger";
+            guildhallQuality = GameManager.Instance.PlayerEnterExit.BuildingDiscoveryData.quality;
+            PlayerEntity player = GameManager.Instance.PlayerEntity;
+            if (guild.IsMember())
+                facTitle = guild.GetTitle();
+
+            CloseWindow();
+
+            // Offer training price
+            DaggerfallMessageBox messageBox = new DaggerfallMessageBox(uiManager, uiManager.TopWindow);
+
+            int trainingPrice = CalculateTrainingPrice(guildhallQuality, player, skillToTrain);
+
+            TextFile.Token[] tokens = DaggerfallUnity.Instance.TextProvider.CreateTokens(
+                    TextFile.Formatting.JustifyCenter,
+                    "For a session in " + skillName + ",",
+                    "it will cost you " + trainingPrice.ToString() + " gold.",
+                    "Still interested, " + facTitle + "?");
+
+            messageBox.SetTextTokens(tokens, guild);
+            messageBox.AddButton(DaggerfallMessageBox.MessageBoxButtons.Yes);
+            messageBox.AddButton(DaggerfallMessageBox.MessageBoxButtons.No);
+            messageBox.OnButtonClick += ConfirmTraining_OnButtonClick;
+            messageBox.Show();
         }
 
         private void ConfirmTraining_OnButtonClick(DaggerfallMessageBox sender, DaggerfallMessageBox.MessageBoxButtons messageBoxButton)
         {
+            int index = PickedSkillIndex;
+            string skillName = PickedSkillName;
+
             CloseWindow();
+
             if (messageBoxButton == DaggerfallMessageBox.MessageBoxButtons.Yes)
             {
                 if (playerEntity.GetGoldAmount() >= guild.GetTrainingPrice())
-                {
-                    // Show skill picker loaded with guild training skills
-                    DaggerfallListPickerWindow skillPicker = new DaggerfallListPickerWindow(uiManager, this);
-                    skillPicker.OnItemPicked += TrainingSkill_OnItemPicked;
-
-                    foreach (DFCareer.Skills skill in GetTrainingSkills())
-                        skillPicker.ListBox.AddItem(DaggerfallUnity.Instance.TextProvider.GetSkillName(skill));
-
-                    uiManager.PushWindow(skillPicker);
-                }
+                    TrainingPickedSkill(index, skillName);
                 else
                     DaggerfallUI.MessageBox(NotEnoughGoldId);
             }
         }
 
-        #region Modded Section
-
-        private void TrainingSkill_OnItemPicked(int index, string skillName) // Going to have to change another method for correct gold cost display, etc.
+        private void TrainingPickedSkill(int index, string skillName)
         {
             CloseWindow();
             List<DFCareer.Skills> trainingSkills = GetTrainingSkills();
             DFCareer.Skills skillToTrain = trainingSkills[index];
             int guildhallQuality = 0;
+            string facTitle = "Stranger";
             guildhallQuality = GameManager.Instance.PlayerEnterExit.BuildingDiscoveryData.quality;
             PlayerEntity player = GameManager.Instance.PlayerEntity;
             int trainingMaximum = CalculateTrainingMaximum(guildhallQuality);
+            if (guild.IsMember())
+                facTitle = guild.GetTitle();
 
             if (playerEntity.Skills.GetPermanentSkillValue(skillToTrain) > trainingMaximum)
             {
+                TextFile.Token[] tokens = null;
                 // Inform player they're too skilled to train
-                TextFile.Token[] tokens = DaggerfallUnity.Instance.TextProvider.GetRandomTokens(TrainingTooSkilledId);
+                if (playerEntity.Skills.GetPermanentSkillValue(skillToTrain) > 85)
+                {
+                    tokens = DaggerfallUnity.Instance.TextProvider.CreateTokens(
+                        TextFile.Formatting.JustifyCenter,
+                        "It seems the student has become the master, " + facTitle + ". There is nothing",
+                        "more I can teach you. A true master in " + skillName,
+                        "does not bother with theory their whole life. They",
+                        "put those theories to practice and become innovators.",
+                        "Now get out there and become a real master, " + facTitle + "!",
+                        "",
+                        "(Can't Be Trained Further Than 85 In This Skill)");
+                }
+                else
+                {
+                    tokens = DaggerfallUnity.Instance.TextProvider.CreateTokens(
+                        TextFile.Formatting.JustifyCenter,
+                        "Train you, " + facTitle + "? Ha, you could probably",
+                        "teach me a thing or two about " + skillName + "! If you want",
+                        "more training, best to find a trainer with more experience.",
+                        "",
+                        "(Max Training Up To " + trainingMaximum.ToString() + " Here)");
+                }
+
                 DaggerfallMessageBox messageBox = new DaggerfallMessageBox(uiManager, uiManager.TopWindow);
                 messageBox.SetTextTokens(tokens, guild);
                 messageBox.ClickAnywhereToClose = true;
@@ -848,33 +906,31 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
             int skillValue = playerEntity.Skills.GetPermanentSkillValue(skillToTrain);
             int trainingAmount = 1;
 
-            UnityEngine.Random.Range(10, 20 + 1);
-
             if (Quality <= 3)       // 01 - 03
             {
-                trainingAmount = UnityEngine.Random.Range(10 + Quality + playerLuck, 15 + Quality + playerLuck);
+                trainingAmount = UnityEngine.Random.Range(13 + Quality + playerLuck, 15 + Quality + playerLuck);
             }
             else if (Quality <= 7)  // 04 - 07
             {
-                trainingAmount = UnityEngine.Random.Range(10 + Quality + playerLuck, 15 + Quality + playerLuck);
+                trainingAmount = UnityEngine.Random.Range(13 + Quality + playerLuck, 19 + Quality + playerLuck);
             }
             else if (Quality <= 13) // 08 - 13
             {
-                trainingAmount = UnityEngine.Random.Range(10 + Quality + playerLuck, 20 + Quality + playerLuck);
+                trainingAmount = UnityEngine.Random.Range(13 + Quality + playerLuck, 23 + Quality + playerLuck);
             }
             else if (Quality <= 17) // 14 - 17
             {
                 if (skillValue >= 65)
-                    trainingAmount = UnityEngine.Random.Range(20 + Quality + playerLuck, 30 + Quality + playerLuck);
+                    trainingAmount = UnityEngine.Random.Range(27 + Quality + playerLuck, 36 + Quality + playerLuck);
                 else
-                    trainingAmount = UnityEngine.Random.Range(15 + Quality + playerLuck, 20 + Quality + playerLuck);
+                    trainingAmount = UnityEngine.Random.Range(15 + Quality + playerLuck, 26 + Quality + playerLuck);
             }
             else                    // 18 - 20
             {
                 if (skillValue >= 65)
-                    trainingAmount = UnityEngine.Random.Range(30 + Quality + playerLuck, 40 + Quality + playerLuck);
+                    trainingAmount = UnityEngine.Random.Range(30 + Quality + playerLuck, 45 + Quality + playerLuck);
                 else
-                    trainingAmount = UnityEngine.Random.Range(20 + Quality + playerLuck, 25 + Quality + playerLuck);
+                    trainingAmount = UnityEngine.Random.Range(20 + Quality + playerLuck, 29 + Quality + playerLuck);
             }
 
             return trainingAmount;
