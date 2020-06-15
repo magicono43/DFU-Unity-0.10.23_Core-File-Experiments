@@ -1262,7 +1262,7 @@ namespace DaggerfallWorkshop.Game.Entity
                             amount = TallyMonsterLanguage(skillId, amount);
                             break;
                         case 13:    // Lockpicking
-                            amount = TallyLockpicking(skillId, amount);
+                            amount = TallyLockpicking(skillId, amount, contextValueOne, contextValueTwo);
                             break;
                         case 14:    // Mercantile
                             amount = TallyMercantile(skillId, amount, contextValueOne, contextValueTwo);
@@ -1333,9 +1333,16 @@ namespace DaggerfallWorkshop.Game.Entity
                 return 7;
         }
 
-        private short TallyLockpicking(int skillId, short amount) // Had an idea, if I could pass the difficulty of the lock that was just picked, that could be used to determine how much xp is given, if you succeed at least.
+        private short TallyLockpicking(int skillId, short amount, int lockpickSuccess, int lockDifficulty)
         {
-            return 4; // Not much way to determine from this class if a lockpicking attempt failed or not, so i'm just going to increase the "xp" value.
+            if (lockpickSuccess == 0)
+            {
+                return 2;
+            }
+            else
+            {
+                return (short)((lockDifficulty * 2) + 1);
+            }
         }
 
         private short TallyMercantile(int skillId, short amount, int tradePrice, int basketItems = 1)
