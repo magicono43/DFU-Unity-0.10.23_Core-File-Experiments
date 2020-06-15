@@ -1268,7 +1268,7 @@ namespace DaggerfallWorkshop.Game.Entity
                             amount = TallyMercantile(skillId, amount, contextValueOne, contextValueTwo);
                             break;
                         case 15:    // Pickpocket
-                            amount = TallyPickpocketing(skillId, amount);
+                            amount = TallyPickpocketing(skillId, amount, contextValueOne, contextValueTwo);
                             break;
                         case 16:    // Stealth // Leaving alone for now, since i'm not sure what to do with it, or if this needs changing really.
                             break;
@@ -1357,9 +1357,19 @@ namespace DaggerfallWorkshop.Game.Entity
             return 1;
         }
 
-        private short TallyPickpocketing(int skillId, short amount)
+        private short TallyPickpocketing(int skillId, short amount, int pickpocketSuccessCheck, int basketItems = 1)
         {
-            return 3; // Similar to lockpicking, this one has more way to skill it up so I made the xp amount slightly lower, this needs some work though.
+            if (pickpocketSuccessCheck == 0)
+            {
+                return 2;
+            }
+            else
+            {
+                if (basketItems > 1)
+                    return (short)((basketItems * 3) + 1);
+                else
+                    return 4;
+            }
         }
 
         private short TallySwimming(int skillId, short amount)
