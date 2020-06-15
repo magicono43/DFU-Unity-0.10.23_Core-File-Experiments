@@ -797,7 +797,7 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
                         TextFile.Formatting.JustifyCenter,
                         "Train you, " + facTitle + "? Ha, you could probably",
                         "teach me a thing or two about " + skillName + "! If you want",
-                        "more training, best to find a trainer with more experience.",
+                        "more training, best find a trainer with more experience.",
                         "",
                         "(Max Training Up To " + trainingMaximum.ToString() + " Here)");
                 }

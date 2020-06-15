@@ -1398,7 +1398,7 @@ namespace DaggerfallWorkshop.Game.Entity
             {
                 return (short)Mathf.Max((int)Mathf.Round(tallyAmount / effectCount), 1f);
             }
-        } // Will also obviously want to add some debug strings to make sure these functions are working, lol. // Might revisit the other skills since I now have potentially more parameters to work with in "TallySkill" method. // I may work on getting the "usesRequiredForAdvancement" to show up on the skill menu for basic tracking. If not that, consider doing the back-end proper implimentation part, which I am NOT looking forward to.
+        } // Might revisit the other skills since I now have potentially more parameters to work with in "TallySkill" method. // I may work on getting the "usesRequiredForAdvancement" to show up on the skill menu for basic tracking. If not that, consider doing the back-end proper implimentation part, which I am NOT looking forward to.
 
         #endregion
 
