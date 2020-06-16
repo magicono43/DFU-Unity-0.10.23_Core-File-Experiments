@@ -1278,7 +1278,7 @@ namespace DaggerfallWorkshop.Game.Entity
                         case 19:    // Backstabbing // Going to make this way higher, as this also likely happens not that often due to many factors.
                             amount = TallyBackstabbing(skillId, amount);
                             break;
-                        case 20:    // Dodging // Once again, going to make this slightly higher, for now at least.
+                        case 20:    // Dodging // Once again, going to make this slightly higher, for now at least, can't really think of anything else for it.
                             amount = TallyDodging(skillId, amount);
                             break;
                         case 22:
@@ -1415,7 +1415,7 @@ namespace DaggerfallWorkshop.Game.Entity
             {
                 return (short)Mathf.Max((int)Mathf.Round(tallyAmount / effectCount), 1f);
             }
-        } // Might revisit the other skills since I now have potentially more parameters to work with in "TallySkill" method. // I may work on getting the "usesRequiredForAdvancement" to show up on the skill menu for basic tracking. If not that, consider doing the back-end proper implimentation part, which I am NOT looking forward to.
+        } // Now that I got that "skill progress display" working in the skills character sheet, I MAY try and do something that allows skills to advance without sleeping, like maybe check every hour in-game, and only allow level ups after a session of sleep or something. If not that, consider doing the back-end proper implimentation part, which I am NOT looking forward to.
 
         #endregion
 
@@ -1508,6 +1508,28 @@ namespace DaggerfallWorkshop.Game.Entity
         }
 
         #region Modded Section Part 2
+
+        public int CurrentTallyCount(DFCareer.Skills skill)
+        {
+            int i = (int)skill;
+
+            int reflexesMod = 0x10000 - (((int)reflexes - 2) << 13);
+            int calculatedSkillUses = (skillUses[i] * reflexesMod) >> 16;
+
+            return calculatedSkillUses;
+        }
+
+        public int TallysNeededToAdvance(DFCareer.Skills skill)
+        {
+            int i = (int)skill;
+
+            int skillAdvancementMultiplier = DaggerfallSkills.GetAdvancementMultiplier((DFCareer.Skills)i);
+            float careerAdvancementMultiplier = Career.AdvancementMultiplier;
+            int usesNeededForAdvancement = FormulaHelper.CalculateSkillUsesForAdvancement(skills.GetPermanentSkillValue(i), skillAdvancementMultiplier, careerAdvancementMultiplier, level);
+            usesNeededForAdvancement = PrimaryAttributeModifier(i, usesNeededForAdvancement);
+
+            return usesNeededForAdvancement;
+        }
 
         /// <summary>
         /// Raise skills if conditions are met.
