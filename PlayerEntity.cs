@@ -1301,6 +1301,7 @@ namespace DaggerfallWorkshop.Game.Entity
                 {
                     skillUses[skillId] = 0;
                 }
+                //ModdedRaiseSkills(skillId); // For continous skill advancement checks as skills are raised.
             }
             catch (Exception ex)
             {
@@ -1415,7 +1416,7 @@ namespace DaggerfallWorkshop.Game.Entity
             {
                 return (short)Mathf.Max((int)Mathf.Round(tallyAmount / effectCount), 1f);
             }
-        } // Now that I got that "skill progress display" working in the skills character sheet, I MAY try and do something that allows skills to advance without sleeping, like maybe check every hour in-game, and only allow level ups after a session of sleep or something. If not that, consider doing the back-end proper implimentation part, which I am NOT looking forward to.
+        } // Consider doing the back-end proper implimentation part, which I am NOT looking forward to.
 
         #endregion
 
@@ -1531,6 +1532,54 @@ namespace DaggerfallWorkshop.Game.Entity
             return usesNeededForAdvancement;
         }
 
+        /*public void ModdedRaiseSkills(int skillId) // Experimentation with "instant" skill level ups, broken op without balancing first, etc.
+        {
+            const int youAreNowAMasterOfTextID = 4020;
+
+            Debug.LogFormat("The Skill enum, {0}", skillId);
+            int skillAdvancementMultiplier = DaggerfallSkills.GetAdvancementMultiplier((DFCareer.Skills)skillId);
+            float careerAdvancementMultiplier = Career.AdvancementMultiplier;
+            int usesNeededForAdvancement = FormulaHelper.CalculateSkillUsesForAdvancement(skills.GetPermanentSkillValue(skillId), skillAdvancementMultiplier, careerAdvancementMultiplier, level);
+            Debug.LogFormat("Requires, {0} uses to advance.", usesNeededForAdvancement);
+            usesNeededForAdvancement = PrimaryAttributeModifier(skillId, usesNeededForAdvancement);
+            Debug.LogFormat("Requires, {0} uses to advance, AFTER Primary Attribute Modifiers.", usesNeededForAdvancement);
+            int reflexesMod = 0x10000 - (((int)reflexes - 2) << 13);
+            int calculatedSkillUses = (skillUses[skillId] * reflexesMod) >> 16;
+            Debug.LogFormat("The current uses for it is, {0}.", calculatedSkillUses);
+
+            if (calculatedSkillUses >= usesNeededForAdvancement)
+            {
+                skillUses[skillId] = 0;
+
+                if (skills.GetPermanentSkillValue(skillId) < 100 && (skills.GetPermanentSkillValue(skillId) < 95 || !AlreadyMasteredASkill()))
+                {
+                    skills.SetPermanentSkillValue(skillId, (short)(skills.GetPermanentSkillValue(skillId) + 1));
+                    SetSkillRecentlyIncreased(skillId);
+                    SetCurrentLevelUpSkillSum();
+                    DaggerfallUI.Instance.PopupMessage(HardStrings.skillImprove.Replace("%s", DaggerfallUnity.Instance.TextProvider.GetSkillName((DFCareer.Skills)skillId)));
+                    if (skills.GetPermanentSkillValue(skillId) == 100)
+                    {
+                        List<DFCareer.Skills> primarySkills = GetPrimarySkills();
+                        if (primarySkills.Contains((DFCareer.Skills)skillId))
+                        {
+                            ITextProvider textProvider = DaggerfallUnity.Instance.TextProvider;
+                            TextFile.Token[] tokens;
+                            tokens = textProvider.GetRSCTokens(youAreNowAMasterOfTextID);
+                            if (tokens != null && tokens.Length > 0)
+                            {
+                                DaggerfallMessageBox messageBox = new DaggerfallMessageBox(DaggerfallUI.UIManager);
+                                messageBox.SetTextTokens(tokens);
+                                messageBox.ClickAnywhereToClose = true;
+                                messageBox.ParentPanel.BackgroundColor = Color.clear;
+                                messageBox.Show();
+                            }
+                            DaggerfallUI.Instance.PlayOneShot(SoundClips.ArenaFanfareLevelUp);
+                        }
+                    }
+                }
+            }
+        }*/
+
         /// <summary>
         /// Raise skills if conditions are met.
         /// </summary>
@@ -1539,7 +1588,7 @@ namespace DaggerfallWorkshop.Game.Entity
             const int youAreNowAMasterOfTextID = 4020;
 
             DaggerfallDateTime now = DaggerfallUnity.Instance.WorldTime.Now;
-            if ((now.ToClassicDaggerfallTime() - timeOfLastSkillIncreaseCheck) <= 360)
+            if ((now.ToClassicDaggerfallTime() - timeOfLastSkillIncreaseCheck) <= 240)
                 return;
 
             timeOfLastSkillIncreaseCheck = now.ToClassicDaggerfallTime();
